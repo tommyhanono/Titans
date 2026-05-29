@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Titans">
+  <meta name="theme-color" content="#c0392b">
+  <link rel="apple-touch-icon" href="icon-192.svg">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <title>Fútbol Sub 10</title>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Header ── -->
+  <header id="header">
+    <div class="hrow hrow-top">
+      <input id="game-name" type="text" placeholder="Nombre del Partido" autocomplete="off" spellcheck="false">
+      <div class="clock-wrap">
+        <span id="half-pill">1T</span>
+        <span id="clock">0:00</span>
+      </div>
+      <div class="score-wrap">
+        <div class="score-side">
+          <span class="score-team-name">TITANS</span>
+          <span id="team-score">0</span>
+        </div>
+        <span class="score-dash">—</span>
+        <div class="score-side rival">
+          <span id="rival-score">0</span>
+          <span class="score-team-name" id="rival-lbl">RIVAL</span>
+          <div class="rival-adj">
+            <button id="rival-minus" aria-label="Quitar gol rival">−</button>
+            <button id="rival-plus"  aria-label="Agregar gol rival">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="hrow hrow-ctrl">
+      <button id="btn-clock" class="hbtn clock-btn">▶ Iniciar</button>
+      <button id="btn-half"  class="hbtn">⏭ Sig. Tiempo</button>
+      <div class="spacer"></div>
+    </div>
+  </header>
+
+  <!-- ── Main ── -->
+  <div id="main">
+
+    <!-- Left Panel -->
+    <div id="left-panel">
+
+      <!-- Active badge -->
+      <div id="active-badge">
+        <div id="badge-avatar">?</div>
+        <div id="badge-info">
+          <span id="active-name">Selecciona un jugador</span>
+          <span id="active-status">— toca un jugador para registrar estadísticas —</span>
+        </div>
+      </div>
+
+      <!-- Position selector (visible when player selected) -->
+      <div id="position-selector" class="hidden">
+        <span class="pos-label">Posición:</span>
+        <button class="pos-btn" data-pos="">—</button>
+        <button class="pos-btn" data-pos="GK">GK</button>
+        <button class="pos-btn" data-pos="DEF">DEF</button>
+        <button class="pos-btn" data-pos="MED">MED</button>
+        <button class="pos-btn" data-pos="DEL">DEL</button>
+      </div>
+
+      <!-- Player list -->
+      <div id="player-list"></div>
+
+      <!-- Log (landscape only) -->
+      <div id="action-log">
+        <div class="log-title">Acciones del Partido</div>
+        <div id="log-entries"></div>
+      </div>
+
+      <!-- Control buttons -->
+      <div id="ctrl-btns">
+        <button id="btn-undo"    class="cb">↩ Deshacer</button>
+        <button id="btn-save"    class="cb">💾 Guardar</button>
+        <button id="btn-load"    class="cb">📂 Cargar</button>
+        <button id="btn-report"  class="cb">📋 Reporte</button>
+        <button id="btn-new"     class="cb danger">🔄 Nuevo</button>
+        <button id="btn-add"     class="cb">＋ Jugador</button>
+        <button id="btn-remove"  class="cb">－ Jugador</button>
+        <button id="btn-sub"     class="cb">↕ Sust.</button>
+        <button id="btn-penalty" class="cb">⚽ Penales</button>
+        <button id="btn-season"  class="cb">📅 Temporada</button>
+        <button id="btn-table"   class="cb">📊 Tabla</button>
+      </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div id="right-panel">
+
+      <!-- Shots card -->
+      <div class="rcard">
+        <div class="section-title">⚽ TIROS AL ARCO</div>
+        <div class="shot-grid">
+          <div class="shot-row">
+            <span class="shot-lbl">
+              <span class="shot-lbl-main">Gol</span>
+              <span class="shot-lbl-sub">jugada abierta</span>
+            </span>
+            <button class="sbtn made"   data-type="goles">✓ GOL</button>
+            <button class="sbtn missed" data-type="goles">✗ Fallo</button>
+          </div>
+          <div class="shot-row">
+            <span class="shot-lbl">
+              <span class="shot-lbl-main">Tiro Libre</span>
+              <span class="shot-lbl-sub">fuera del área</span>
+            </span>
+            <button class="sbtn made"   data-type="tirosLibres">✓ GOL</button>
+            <button class="sbtn missed" data-type="tirosLibres">✗ Fallo</button>
+          </div>
+          <div class="shot-row">
+            <span class="shot-lbl">
+              <span class="shot-lbl-main">Penal</span>
+              <span class="shot-lbl-sub">punto del penal</span>
+            </span>
+            <button class="sbtn made"   data-type="penales">✓ GOL</button>
+            <button class="sbtn missed" data-type="penales">✗ Fallo</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats card -->
+      <div class="rcard">
+        <div class="section-title">📊 ESTADÍSTICAS</div>
+        <div class="stat-grid">
+          <button class="stbtn positive"  data-stat="asistencias">🅰️ Asistencia</button>
+          <button class="stbtn positive"  data-stat="recuperaciones">💪 Recuperación</button>
+          <button class="stbtn neutral"   data-stat="faltasRecibidas">🛡️ Falta Recibida</button>
+          <button class="stbtn neutral"   data-stat="fueraLugar">🚩 Fuera de Lugar</button>
+          <button class="stbtn negative"  data-stat="faltasCometidas">⚠️ Falta Cometida</button>
+          <button class="stbtn negative"  data-stat="perdidas">💸 Pérdida</button>
+          <button class="stbtn amarilla"  data-stat="tarjetasAmarillas">🟨 T. Amarilla</button>
+          <button class="stbtn roja"      data-stat="tarjetasRojas">🟥 T. Roja</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Stats table -->
+  <div id="stats-panel" class="hidden">
+    <div class="table-header">
+      <span>Tabla de Estadísticas</span>
+      <button id="btn-close-table">✕</button>
+    </div>
+    <div class="table-scroll">
+      <table id="stats-tbl">
+        <thead>
+          <tr>
+            <th class="scol">Jugador</th>
+            <th>POS</th><th>MIN</th><th>GOL</th>
+            <th>T M/A</th><th>TL M/A</th><th>P M/A</th>
+            <th>%T</th><th>%TL</th><th>%P</th>
+            <th>AST</th><th>FC</th><th>FR</th>
+            <th>T.AM</th><th>T.RO</th><th>FUERA</th><th>REC</th><th>PERD</th>
+          </tr>
+        </thead>
+        <tbody id="stats-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- ── Substitution Modal ── -->
+<div id="sub-modal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-title">↕ Sustitución</div>
+    <div class="modal-field">
+      <label>Sale del campo:</label>
+      <select id="sub-out-select"></select>
+    </div>
+    <div class="modal-field">
+      <label>Entra al campo:</label>
+      <select id="sub-in-select"></select>
+    </div>
+    <div class="modal-btns">
+      <button id="sub-confirm" class="modal-confirm">✓ Confirmar</button>
+      <button id="sub-cancel"  class="cb">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Penalty Shootout Modal ── -->
+<div id="penalty-modal" class="modal-overlay hidden">
+  <div class="modal-box penalty-box">
+    <div class="modal-title">⚽ Tanda de Penales</div>
+    <div id="pen-score-display" class="pen-score">Titans 0 — 0 Rival</div>
+    <div id="pen-winner" class="pen-winner hidden"></div>
+    <div class="table-scroll pen-table-wrap">
+      <table id="penalty-table">
+        <thead>
+          <tr><th>#</th><th>TITANS</th><th></th><th>RIVAL</th></tr>
+        </thead>
+        <tbody id="penalty-tbody"></tbody>
+      </table>
+    </div>
+    <div class="pen-controls">
+      <div class="pen-side">
+        <div class="pen-side-label">TITANS</div>
+        <select id="pen-player-select"></select>
+        <div class="pen-side-btns">
+          <button id="pen-titans-made"  class="pen-btn made">✓ GOL</button>
+          <button id="pen-titans-miss"  class="pen-btn missed">✗ Fallo</button>
+        </div>
+      </div>
+      <div class="pen-divider"></div>
+      <div class="pen-side">
+        <div class="pen-side-label">RIVAL</div>
+        <div class="pen-side-btns">
+          <button id="pen-rival-made"   class="pen-btn made">✓ GOL</button>
+          <button id="pen-rival-miss"   class="pen-btn missed">✗ Fallo</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button id="pen-undo"  class="cb">↩ Deshacer</button>
+      <button id="pen-close" class="cb danger">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Season Modal ── -->
+<div id="season-modal" class="modal-overlay hidden">
+  <div class="modal-box season-box">
+    <div class="modal-title">📅 Estadísticas de Temporada</div>
+    <div id="season-content" class="season-content"></div>
+    <div class="modal-footer">
+      <button id="season-save"  class="modal-confirm">💾 Guardar partido actual</button>
+      <button id="season-clear" class="cb danger">🗑️ Limpiar temporada</button>
+      <button id="season-close" class="cb">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="app.js"></script>
+</body>
+</html>
