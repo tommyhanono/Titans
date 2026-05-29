@@ -9,9 +9,9 @@ const STORAGE_KEY  = 'basket_ludos18_game_v1';
 const HISTORY_KEY  = 'basket_ludos18_hist_v1';
 
 const DEFAULT_PLAYERS = [
-  'Jugador 1',  'Jugador 2',  'Jugador 3',  'Jugador 4',
-  'Jugador 5',  'Jugador 6',  'Jugador 7',  'Jugador 8',
-  'Jugador 9',  'Jugador 10', 'Jugador 11', 'Jugador 12',
+  'Aaron Breziner', 'Andre Setton',     'Zury Attia',       'Joseph Gabay',
+  'Saul Piciotto',  'Daniel Abadi',     'Ilay Mendelson',   'Alberto Yahni',
+  'Ramon Malca',    'Ariel Gean',       'Ariel Ghershfeld', 'Toby Burstein',
 ];
 
 /* Tiros: cada par = (Encestado, Fallado) */
