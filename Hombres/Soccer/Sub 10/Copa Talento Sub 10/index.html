@@ -92,6 +92,7 @@
         <button id="btn-sub"     class="cb">↕ Sust.</button>
         <button id="btn-penalty" class="cb">⚽ Penales</button>
         <button id="btn-season"  class="cb">📅 Temporada</button>
+        <button id="btn-plantillas" class="cb tpl-btn">👥 Plantillas</button>
         <button id="btn-table"   class="cb">📊 Tabla</button>
       </div>
     </div>
@@ -246,5 +247,20 @@
 
 <div id="toast"></div>
 <script src="app.js"></script>
+
+<!-- Plantillas Modal -->
+<div id="tplModal" class="tpl-overlay" hidden>
+  <div class="tpl-box">
+    <div class="tpl-hdr">
+      <span>👥 Plantillas de Equipo</span>
+      <button class="tpl-close-btn" onclick="document.getElementById('tplModal').hidden=true">✕</button>
+    </div>
+    <div id="tplList" class="tpl-list"></div>
+    <div class="tpl-footer">
+      <button class="tpl-action-btn" onclick="saveCurrentAsTemplate()">💾 Guardar nómina actual como plantilla</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
