@@ -1449,12 +1449,6 @@ function registerSW() {
 /* ═══════════════════════════════════════════════════════════════════════════
    INIT
 ═══════════════════════════════════════════════════════════════════════════ */
-);
-  await _pushTemplates(templates);
-  _renderTplList(templates);
-  toast(`✓ Plantilla "${name.trim()}" guardada`);
-}
-
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PLANTILLAS DE EQUIPO — localStorage + URL sharing

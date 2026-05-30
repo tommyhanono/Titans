@@ -1033,13 +1033,6 @@ function init() {
   }
 }
 
-));
-  templates.push({ name: name.trim(), players });
-  await _pushTemplates(templates);
-  _renderTplList(templates);
-  toast(`✓ Plantilla "${name.trim()}" guardada`);
-}
-
 
 /* ═══════════════════════════════════════════════════════════════════════════
    PLANTILLAS DE EQUIPO — localStorage + URL sharing
