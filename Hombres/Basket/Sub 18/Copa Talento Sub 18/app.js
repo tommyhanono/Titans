@@ -951,6 +951,7 @@ function openHistorial() {
             <span class="game-title">Titans vs ${g.rivalName}</span>
             <span class="game-score">${scoreStr}</span>
             <span class="game-date">${g.date}</span>
+            <button class="del-game-btn" onclick="event.preventDefault();event.stopPropagation();deleteGame(${i})" title="Eliminar partido">🗑️</button>
           </summary>
           <div class="game-detail">
             <table class="h-table">
@@ -1041,8 +1042,26 @@ function openHistorial() {
   .tbl-wrap{overflow-x:auto}
   .print-btn{display:block;margin:0 auto 28px;padding:10px 28px;background:#1a1a2e;color:#fff;
              border:none;border-radius:8px;font-size:0.95rem;font-weight:700;cursor:pointer}
-  @media print{.print-btn{display:none}}
+  .del-game-btn{margin-left:auto;background:none;border:none;font-size:1rem;cursor:pointer;
+                opacity:0.4;padding:2px 4px;border-radius:4px;flex-shrink:0}
+  .del-game-btn:hover{opacity:1;background:#ffeaea}
+  @media print{.print-btn,.del-game-btn{display:none}}
 </style>
+<script>
+function deleteGame(idx) {
+  const KEY = '${HISTORY_KEY}';
+  if (!confirm('¿Eliminar este partido del historial? Esta acción no se puede deshacer.')) return;
+  try {
+    const h = JSON.parse(localStorage.getItem(KEY) || '[]');
+    h.splice(idx, 1);
+    localStorage.setItem(KEY, JSON.stringify(h));
+  } catch(e) {}
+  if (window.opener && !window.opener.closed) {
+    window.opener.showHistory();
+  }
+  window.close();
+}
+</script>
 </head><body><div class="page">
   <button class="print-btn" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
   <h1>📚 Historial — Titans</h1>
