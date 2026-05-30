@@ -743,7 +743,7 @@ function manualLoad() {
   else               toast('No hay partido guardado');
 }
 
-function newGame() {
+async function newGame() {
   if (!confirm('¿Iniciar un nuevo partido?\n\nSe guardarán las estadísticas actuales en el historial.')) return;
 
   // Guardar partido actual al historial si tiene datos
@@ -751,7 +751,7 @@ function newGame() {
     const rivalScoreRaw = prompt('¿Cuántos puntos anotó el rival? (Enter para saltar)', '');
     const rivalScore    = rivalScoreRaw !== null && rivalScoreRaw.trim() !== '' ? parseInt(rivalScoreRaw) : null;
     const rivalName     = S.gameName.replace(/titans\s*vs\s*/i, '').trim() || '???';
-    saveToHistory(rivalName, rivalScore);
+    await saveToHistory(rivalName, rivalScore);
   }
 
   const opponent = prompt('Nombre del nuevo rival:', '___') || '___';
@@ -840,6 +840,76 @@ const SEASON_SEED = (function() {
   ];
 })();
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   FIREBASE — Historial en la nube
+═══════════════════════════════════════════════════════════════════════════ */
+const FB_BASE = 'https://titans-tracker-default-rtdb.firebaseio.com';
+const FB_NODE = 'titans_copa18';
+
+async function fbGet() {
+  try {
+    const res = await fetch(`${FB_BASE}/${FB_NODE}/history.json?orderBy="$key"`);
+    if (!res.ok) throw new Error('offline');
+    const data = await res.json();
+    if (!data) return [];
+    return Object.entries(data)
+      .sort(([a],[b]) => a.localeCompare(b))
+      .map(([fbKey, game]) => ({...game, _fbKey: fbKey}));
+  } catch(e) {
+    try { return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]'); }
+    catch(_) { return [...SEASON_SEED]; }
+  }
+}
+
+async function fbPush(game) {
+  try {
+    const res = await fetch(`${FB_BASE}/${FB_NODE}/history.json`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(game)
+    });
+    const {name: fbKey} = await res.json();
+    // Mirror to localStorage as offline backup
+    try {
+      const local = JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
+      local.push(game);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(local));
+    } catch(_) {}
+    return fbKey;
+  } catch(e) {
+    // Offline: save to localStorage only
+    try {
+      const local = JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');
+      local.push(game);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(local));
+    } catch(_) {}
+    return null;
+  }
+}
+
+async function fbDelete(fbKey) {
+  if (!fbKey) return;
+  try {
+    await fetch(`${FB_BASE}/${FB_NODE}/history/${fbKey}.json`, {method: 'DELETE'});
+  } catch(e) { console.warn('Delete failed (offline?):', e); }
+}
+
+async function fbMigrateSeedIfNeeded() {
+  try {
+    const res = await fetch(`${FB_BASE}/${FB_NODE}/history.json?shallow=true`);
+    if (!res.ok) return;
+    const existing = await res.json();
+    if (existing) return; // Already has data, skip migration
+    for (const game of SEASON_SEED) {
+      await fetch(`${FB_BASE}/${FB_NODE}/history.json`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(game)
+      });
+    }
+  } catch(e) { /* offline, skip */ }
+}
+
 function loadHistory() {
   try {
     const raw = localStorage.getItem(HISTORY_KEY);
@@ -850,27 +920,25 @@ function loadHistory() {
   } catch(e) { return SEASON_SEED; }
 }
 
-function saveToHistory(rivalName, rivalScore) {
-  try {
-    const history = loadHistory();
-    history.push({
-      date:         new Date().toLocaleDateString('es-ES'),
-      gameName:     S.gameName,
-      rivalName,
-      titansScore:  totalPts(),
-      rivalScore,
-      stats:        JSON.parse(JSON.stringify(S.stats)),
-      minutesPlayed:JSON.parse(JSON.stringify(S.minutesPlayed)),
-      fouledOut:    JSON.parse(JSON.stringify(S.fouledOut || {})),
-      players:      [...S.players],
-    });
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-    toast('📚 Partido guardado en historial');
-  } catch(e) { console.warn('Error guardando historial:', e); }
+async function saveToHistory(rivalName, rivalScore) {
+  const game = {
+    date:          new Date().toLocaleDateString('es-ES'),
+    gameName:      S.gameName,
+    rivalName,
+    titansScore:   totalPts(),
+    rivalScore,
+    stats:         JSON.parse(JSON.stringify(S.stats)),
+    minutesPlayed: JSON.parse(JSON.stringify(S.minutesPlayed)),
+    fouledOut:     JSON.parse(JSON.stringify(S.fouledOut || {})),
+    players:       [...S.players],
+  };
+  await fbPush(game);
+  toast('📚 Partido guardado en historial');
 }
 
-function openHistorial() {
-  const history = loadHistory();
+async function openHistorial() {
+  fbMigrateSeedIfNeeded();
+  const history = await fbGet();
 
   /* ── Season totals per player ── */
   const allPlayers = [...new Set(history.flatMap(g => g.players))];
@@ -951,7 +1019,7 @@ function openHistorial() {
             <span class="game-title">Titans vs ${g.rivalName}</span>
             <span class="game-score">${scoreStr}</span>
             <span class="game-date">${g.date}</span>
-            <button class="del-game-btn" onclick="event.preventDefault();event.stopPropagation();deleteGame(${i})" title="Eliminar partido">🗑️</button>
+            <button class="del-game-btn" onclick="event.preventDefault();event.stopPropagation();deleteGame('${g._fbKey||''}',${i})" title="Eliminar partido">🗑️</button>
           </summary>
           <div class="game-detail">
             <table class="h-table">
@@ -1048,16 +1116,15 @@ function openHistorial() {
   @media print{.print-btn,.del-game-btn{display:none}}
 </style>
 <script>
-function deleteGame(idx) {
-  const KEY = '${HISTORY_KEY}';
+async function deleteGame(fbKey, idx) {
   if (!confirm('¿Eliminar este partido del historial? Esta acción no se puede deshacer.')) return;
-  try {
-    const h = JSON.parse(localStorage.getItem(KEY) || '[]');
-    h.splice(idx, 1);
-    localStorage.setItem(KEY, JSON.stringify(h));
-  } catch(e) {}
+  if (fbKey) {
+    try {
+      await fetch('${FB_BASE}/${FB_NODE}/history/' + fbKey + '.json', {method: 'DELETE'});
+    } catch(e) { console.warn('Delete failed:', e); }
+  }
   if (window.opener && !window.opener.closed) {
-    window.opener.showHistory();
+    window.opener.openHistorial();
   }
   window.close();
 }

@@ -627,7 +627,7 @@ function loadSeason() {
   } catch(_) { return { games: [] }; }
 }
 
-function saveGameToSeason() {
+async function saveGameToSeason() {
   const season = loadSeason();
   const ts = teamScore();
   const game = {
@@ -646,19 +646,58 @@ function saveGameToSeason() {
   };
   season.games.push(game);
   localStorage.setItem(SEASON_KEY, JSON.stringify(season));
+  await fbPush(game);
   toast('Partido guardado en temporada 📅');
-  renderSeasonContent();
+  const allGames = await fbGet();
+  renderSeasonContent(allGames);
 }
 
-function clearSeason() {
+async function clearSeason() {
   if (!confirm('¿Limpiar todas las estadísticas de temporada? Esta acción no se puede deshacer.')) return;
   localStorage.removeItem(SEASON_KEY);
-  renderSeasonContent();
+  renderSeasonContent([]);
   toast('Temporada limpiada 🗑️');
 }
 
-function openSeasonModal() {
-  renderSeasonContent();
+// ── Firebase (history sync) ───────────────────────────────
+const FB_BASE = 'https://titans-tracker-default-rtdb.firebaseio.com';
+const FB_NODE = 'titans_soc_muj18';
+
+async function fbGet() {
+  try {
+    const res = await fetch(`${FB_BASE}/${FB_NODE}/history.json?orderBy="$key"`);
+    if (!res.ok) throw new Error('offline');
+    const data = await res.json();
+    if (!data) return [];
+    return Object.entries(data)
+      .sort(([a],[b]) => a.localeCompare(b))
+      .map(([fbKey, game]) => ({...game, _fbKey: fbKey}));
+  } catch(e) {
+    const season = loadSeason();
+    return season.games || [];
+  }
+}
+
+async function fbPush(game) {
+  try {
+    const res = await fetch(`${FB_BASE}/${FB_NODE}/history.json`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(game)
+    });
+    const {name: fbKey} = await res.json();
+    return fbKey;
+  } catch(e) {
+    console.warn('Firebase push failed (offline?):', e);
+    return null;
+  }
+}
+
+
+
+async function openSeasonModal() {
+  const games = await fbGet();
+  renderSeasonContent(games);
   document.getElementById('season-modal').classList.remove('hidden');
 }
 
@@ -666,11 +705,10 @@ function closeSeasonModal() {
   document.getElementById('season-modal').classList.add('hidden');
 }
 
-function renderSeasonContent() {
+function renderSeasonContent(games) {
   const container = document.getElementById('season-content');
   if (!container) return;
-  const season = loadSeason();
-  const games  = season.games || [];
+  if (!games) { const season = loadSeason(); games = season.games || []; }
 
   if (!games.length) {
     container.innerHTML = '<div class="season-empty">No hay partidos guardados aún.<br>Juega un partido y toca <b>💾 Guardar partido actual</b>.</div>';
