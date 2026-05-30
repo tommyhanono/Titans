@@ -1184,6 +1184,36 @@ async function openTemplates() {
   _renderTplList(_tplCache);
 }
 
+function loadTemplate(idx) {
+  const t = _tplCache?.[idx];
+  if (!t) return;
+  if (!confirm(`¿Cargar la plantilla "${t.name}"?\nEsto reemplazará la nómina actual.`)) return;
+  t.players.forEach(p => {
+    if (!S.players.includes(p)) {
+      S.players.push(p);
+      S.stats[p]     = mkStats();
+      S.secs[p]      = 0;
+      S.onField[p]   = false;
+      S.elim[p]      = false;
+      S.positions[p] = '';
+    }
+  });
+  // Remove players not in the template
+  const toRemove = S.players.filter(p => !t.players.includes(p));
+  toRemove.forEach(p => {
+    S.players = S.players.filter(x => x !== p);
+    delete S.stats[p]; delete S.secs[p];
+    delete S.onField[p]; delete S.elim[p]; delete S.positions[p];
+  });
+  S.players = [...t.players]; // enforce exact order
+  if (!S.players.includes(S.selected)) S.selected = S.players[0] || null;
+  render();
+  debouncedSave();
+  document.getElementById('tplModal').hidden = true;
+  toast(`✓ Plantilla "${t.name}" cargada`);
+}
+
+
 async function deleteTemplate(idx) {
   if (!_tplCache?.[idx]) return;
   if (!confirm(`¿Eliminar la plantilla "${_tplCache[idx].name}"?`)) return;
