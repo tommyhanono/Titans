@@ -1,4 +1,4 @@
-const CACHE = 'soccer-hom14-v5';
+const CACHE = 'soccer-hom14-v6';
 const LOCAL_FILES = [
   './',
   './index.html',
