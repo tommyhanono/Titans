@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutorial — Tracker de Fútbol</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, Arial, sans-serif; background: #f5f5f5; color: #1a1a1a; }
+
+  .cover {
+    background: linear-gradient(135deg, #1b5e20, #2e7d32);
+    color: white;
+    padding: 48px 24px 40px;
+    text-align: center;
+  }
+  .cover .badge { font-size: 64px; margin-bottom: 16px; }
+  .cover h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+  .cover p { font-size: 15px; opacity: .85; max-width: 420px; margin: 0 auto; }
+
+  .toc {
+    background: white;
+    margin: 0 0 8px 0;
+    padding: 20px 24px;
+    border-bottom: 1px solid #eee;
+  }
+  .toc h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 12px; }
+  .toc a { display: block; color: #1b5e20; text-decoration: none; padding: 6px 0; font-size: 15px; border-bottom: 1px solid #f0f0f0; }
+  .toc a:last-child { border-bottom: none; }
+  .toc a span { float: right; color: #aaa; }
+
+  .section {
+    background: white;
+    margin: 8px 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  .section-header {
+    background: #1b5e20;
+    color: white;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-header .num {
+    background: rgba(255,255,255,0.2);
+    border-radius: 50%;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 16px; flex-shrink: 0;
+  }
+  .section-header h2 { font-size: 18px; font-weight: 700; }
+  .section-header .icon { font-size: 22px; }
+
+  .steps { padding: 20px; }
+  .step {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 18px;
+    align-items: flex-start;
+  }
+  .step:last-child { margin-bottom: 0; }
+  .step .dot {
+    background: #1b5e20;
+    color: white;
+    border-radius: 50%;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 13px;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .step .content { flex: 1; }
+  .step .content strong { display: block; font-size: 16px; margin-bottom: 3px; }
+  .step .content p { font-size: 14px; color: #444; line-height: 1.5; }
+  .step .content .pill {
+    display: inline-block;
+    background: #e8f5e9;
+    color: #1b5e20;
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 4px 3px 0 0;
+  }
+  .step .content .pill.red { background: #fbe9e7; color: #c62828; }
+  .step .content .pill.green { background: #e8f5e9; color: #2e7d32; }
+  .step .content .pill.orange { background: #fff3e0; color: #e65100; }
+  .step .content .pill.yellow { background: #fff9c4; color: #f57f17; }
+  .step .content .pill.blue { background: #e3f2fd; color: #0d47a1; }
+
+  .tip {
+    background: #fff8e1;
+    border-left: 4px solid #ffc107;
+    border-radius: 4px;
+    padding: 12px 14px;
+    margin: 14px 20px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .tip strong { display: block; margin-bottom: 4px; color: #e65100; }
+
+  .warning {
+    background: #fbe9e7;
+    border-left: 4px solid #c62828;
+    border-radius: 4px;
+    padding: 12px 14px;
+    margin: 14px 20px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .warning strong { color: #c62828; display: block; margin-bottom: 4px; }
+
+  .info {
+    background: #e3f2fd;
+    border-left: 4px solid #1565c0;
+    border-radius: 4px;
+    padding: 12px 14px;
+    margin: 14px 20px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .info strong { color: #0d47a1; display: block; margin-bottom: 4px; }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin: 10px 0 4px 0;
+  }
+  .stat-box {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  .stat-box .stat-name { font-weight: 700; font-size: 14px; }
+  .stat-box .stat-desc { color: #666; margin-top: 2px; }
+  .stat-box.green-bg { background: #e8f5e9; }
+  .stat-box.red-bg { background: #fbe9e7; }
+  .stat-box.yellow-bg { background: #fff9c4; }
+
+  .divider { height: 1px; background: #eee; margin: 16px 20px; }
+
+  .footer {
+    text-align: center;
+    padding: 32px 20px;
+    color: #888;
+    font-size: 13px;
+    background: white;
+    margin-top: 8px;
+  }
+  .footer .logo { font-size: 32px; margin-bottom: 8px; }
+
+  @media print {
+    body { background: white; }
+    .section { page-break-inside: avoid; box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<div class="cover">
+  <div class="badge">⚽</div>
+  <h1>Tracker de Estadísticas<br>Fútbol — Guía del Entrenador</h1>
+  <p>Guía paso a paso para usar la app durante un partido. Sin tecnicismos.</p>
+</div>
+
+<!-- ÍNDICE -->
+<div class="toc">
+  <h2>Contenido</h2>
+  <a href="#s1">1. Abrir la app <span>↓</span></a>
+  <a href="#s2">2. Antes del partido — Cargar el plantel <span>↓</span></a>
+  <a href="#s3">3. Empezar el partido — El reloj <span>↓</span></a>
+  <a href="#s4">4. Registrar eventos durante el juego <span>↓</span></a>
+  <a href="#s5">5. Tarjetas y sanciones <span>↓</span></a>
+  <a href="#s6">6. Jugadores en campo <span>↓</span></a>
+  <a href="#s7">7. Medio tiempo y fin del partido <span>↓</span></a>
+  <a href="#s8">8. Guardar en el historial de temporada <span>↓</span></a>
+  <a href="#s9">9. Ver el resumen y exportar <span>↓</span></a>
+  <a href="#s10">10. Preguntas frecuentes <span>↓</span></a>
+</div>
+
+<!-- SECCIÓN 1 -->
+<div class="section" id="s1">
+  <div class="section-header">
+    <div class="num">1</div>
+    <span class="icon">📱</span>
+    <h2>Abrir la app</h2>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="dot">1</div>
+      <div class="content">
+        <strong>Abre el enlace de tu categoría</strong>
+        <p>El director técnico te dio un enlace específico para tu categoría (Sub‑14, Sub‑18, etc.). Ábrelo en el navegador de tu teléfono, tablet o computadora. No necesitas instalar nada.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">2</div>
+      <div class="content">
+        <strong>Guarda el enlace como acceso directo (opcional pero recomendado)</strong>
+        <p>En iPhone: toca el botón de compartir y luego <em>«Agregar a pantalla de inicio»</em>.<br>
+           En Android: toca el menú ⋮ y luego <em>«Agregar a pantalla de inicio»</em>.<br>
+           Así la próxima vez la abres como cualquier otra app.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">3</div>
+      <div class="content">
+        <strong>La app carga automáticamente</strong>
+        <p>Si ya tenías un partido guardado, lo retomará exactamente donde lo dejaste. Si es partido nuevo, verás el plantel en blanco listo para configurar.</p>
+      </div>
+    </div>
+  </div>
+  <div class="tip">
+    <strong>💡 Consejo</strong>
+    Abre la app con WiFi antes del partido para que quede guardada en tu teléfono. Después funciona aunque pierdas señal.
+  </div>
+</div>
+
+<!-- SECCIÓN 2 -->
+<div class="section" id="s2">
+  <div class="section-header">
+    <div class="num">2</div>
+    <span class="icon">👥</span>
+    <h2>Antes del partido — Cargar el plantel</h2>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="dot">1</div>
+      <div class="content">
+        <strong>Toca el botón "Plantillas"</strong>
+        <p>Se abre una lista de plantillas guardadas. Una plantilla es simplemente la lista de nombres de tus jugadores.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">2</div>
+      <div class="content">
+        <strong>Busca tu plantilla y toca "Cargar"</strong>
+        <p>Si tu plantilla tiene una ⭐ estrella, significa que es la <em>predeterminada</em> y se carga automáticamente cada vez que abres la app con partido nuevo.</p>
+        <span class="pill">⭐ Predeterminada</span>
+        <span class="pill">📂 Cargar</span>
+        <span class="pill red">🗑 Borrar</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">3</div>
+      <div class="content">
+        <strong>¿No tienes plantillas guardadas?</strong>
+        <p>Toca <strong>"+ Nueva Plantilla"</strong>, escribe el nombre de cada jugador, dale un nombre a la plantilla y guárdala. La próxima vez ya no tendrás que escribir los nombres.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">4</div>
+      <div class="content">
+        <strong>Marcar la plantilla como predeterminada ⭐</strong>
+        <p>Toca la estrella ☆ al lado de cualquier plantilla para marcarla como predeterminada. La próxima vez que abras la app para un partido nuevo, cargará ese plantel automáticamente. Toca la estrella de nuevo para quitar esa marca.</p>
+      </div>
+    </div>
+  </div>
+  <div class="info">
+    <strong>ℹ️ La plantilla no borra los stats del partido</strong>
+    Cargar una plantilla solo reemplaza la lista de nombres de jugadores. Los estadísticas que ya hayas anotado no se pierden.
+  </div>
+</div>
+
+<!-- SECCIÓN 3 -->
+<div class="section" id="s3">
+  <div class="section-header">
+    <div class="num">3</div>
+    <span class="icon">⏱️</span>
+    <h2>Empezar el partido — El reloj</h2>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="dot">1</div>
+      <div class="content">
+        <strong>Toca "▶ Iniciar Reloj" cuando el árbitro pite</strong>
+        <p>El reloj empieza a contar hacia arriba (0:00, 0:01, 0:02…). En fútbol el tiempo sube, no baja.</p>
+        <span class="pill green">▶ Iniciar Reloj</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">2</div>
+      <div class="content">
+        <strong>Pausa el reloj si hay interrupción larga</strong>
+        <p>Si hay una lesión, discusión o pausa larga, toca el botón del reloj de nuevo para pausarlo. Vuelve a tocarlo cuando reanuden el juego.</p>
+        <span class="pill red">⏸ Pausar Reloj</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">3</div>
+      <div class="content">
+        <strong>El tiempo de cada jugador se acumula automáticamente</strong>
+        <p>Mientras el reloj corre y un jugador esté marcado como "en campo", el tracker cuenta cuántos minutos jugó. (Ver sección 6.)</p>
+      </div>
+    </div>
+  </div>
+  <div class="tip">
+    <strong>💡 En fútbol el reloj NO para</strong>
+    A diferencia del básquet, en fútbol el árbitro lleva el tiempo oficial. El reloj de la app es de referencia; no tienes que pausarlo en cada falta. Solo páusalo si el juego se detiene mucho tiempo.
+  </div>
+</div>
+
+<!-- SECCIÓN 4 -->
+<div class="section" id="s4">
+  <div class="section-header">
+    <div class="num">4</div>
+    <span class="icon">📊</span>
+    <h2>Registrar eventos durante el juego</h2>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="dot">1</div>
+      <div class="content">
+        <strong>Selecciona al jugador primero</strong>
+        <p>Toca el nombre del jugador en la barra de jugadores (parte superior o lateral de la pantalla). El jugador seleccionado aparece resaltado.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">2</div>
+      <div class="content">
+        <strong>Luego toca el botón del evento</strong>
+        <p>Toca el botón que corresponde a lo que acaba de ocurrir. El número en la tabla se actualiza al instante.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+  <div class="steps">
+    <div class="step">
+      <div class="dot">★</div>
+      <div class="content">
+        <strong>Guía de botones — ¿Qué toco para qué?</strong>
+        <div class="stat-grid">
+          <div class="stat-box green-bg">
+            <div class="stat-name">⚽ Gol a Favor</div>
+            <div class="stat-desc">Cuando tu equipo mete gol. Selecciona al jugador que anotó.</div>
+          </div>
+          <div class="stat-box red-bg">
+            <div class="stat-name">🥅 Gol en Contra</div>
+            <div class="stat-desc">Cuando el rival mete gol. Selecciona al portero o al jugador que cometió el error.</div>
+          </div>
+          <div class="stat-box green-bg">
+            <div class="stat-name">🅰️ Asistencia</div>
+            <div class="stat-desc">El pase que terminó en gol. Selecciona al jugador que asistió.</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-name">🦵 Falta Cometida</div>
+            <div class="stat-desc">Cuando tu jugador comete una falta. Selecciona a quien la cometió.</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-name">✋ Falta Recibida</div>
+            <div class="stat-desc">Cuando le hacen falta a tu jugador.</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-name">🏁 Fuera de Lugar</div>
+            <div class="stat-desc">Cuando el árbitro marca offside a tu jugador.</div>
+          </div>
+          <div class="stat-box green-bg">
+            <div class="stat-name">💪 Recuperación</div>
+            <div class="stat-desc">Cuando tu jugador roba el balón o recupera posesión.</div>
+          </div>
+          <div class="stat-box red-bg">
+            <div class="stat-name">❌ Pérdida</div>
+            <div class="stat-desc">Cuando tu jugador pierde el balón innecesariamente.</div>
+          </div>
+          <div class="stat-box green-bg">
+            <div class="stat-name">🟢 Tiro Libre a Favor</div>
+            <div class="stat-desc">Tiro libre (o penalti) que gana tu equipo.</div>
+          </div>
+          <div class="stat-box red-bg">
+            <div class="stat-name">🔴 Tiro Libre en Contra</div>
+            <div class="stat-desc">Tiro libre (o penalti) que le dan al rival.</div>
+          </div>
+          <div class="stat-box green-bg">
+            <div class="stat-name">🥅+ Penal a Favor</div>
+            <div class="stat-desc">Penalti que recibe tu equipo. (Solo si el tracker lo tiene separado.)</div>
+          </div>
+          <div class="stat-box red-bg">
+            <div class="stat-name">🥅- Penal en Contra</div>
+            <div class="stat-desc">Penalti que comete tu equipo.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip">
+    <strong>💡 No te preocupes por la velocidad</strong>
+    Si no alcanzaste a anotar algo en el momento, hazlo en la siguiente pausa. Los stats son acumulativos y no importa en qué segundo exacto los ingresas.
+  </div>
+</div>
+
+<!-- SECCIÓN 5 -->
+<div class="section" id="s5">
+  <div class="section-header">
+    <div class="num">5</div>
+    <span class="icon">🟨</span>
+    <h2>Tarjetas y sanciones</h2>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="dot">1</div>
+      <div class="content">
+        <strong>Tarjeta Amarilla</strong>
+        <p>Selecciona al jugador y toca <strong>"🟨 Amarilla"</strong>. El contador de amarillas sube en 1. La app lleva el conteo automáticamente.</p>
+        <span class="pill yellow">🟨 Tarjeta Amarilla</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">2</div>
+      <div class="content">
+        <strong>Advertencia automática por segunda amarilla</strong>
+        <p>Si un jugador llega a <strong>2 tarjetas amarillas</strong>, la app te avisa con un mensaje. Eso equivale a expulsión — recuerda sacarlo del campo (ver sección 6 "Jugadores en campo").</p>
+        <span class="pill yellow">🟨 = 2</span>
+        <span class="pill red">⚠️ Expulsado</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">3</div>
+      <div class="content">
+        <strong>Tarjeta Roja directa</strong>
+        <p>Selecciona al jugador y toca <strong>"🟥 Roja"</strong>. El jugador quedará marcado como expulsado automáticamente.</p>
+        <span class="pill red">🟥 Tarjeta Roja</span>
+      </div>
+    </div>
+  </div>
+  <div class="warning">
+    <strong>⚠️ La expulsión no es automática en el campo</strong>
+    La app registra la tarjeta y avisa, pero no puede sacar al jugador del campo físicamente. Tú debes tocar su botón de "En Campo" para quitarlo (ver sección 6).
+  </div>
+</div>
+
+<!-- SECCIÓN 6 -->
+<div class="section" id="s6">
+  <div class="section-header">
+    <div class="num">6</div>
+    <span class="icon">🏃</span>
+    <h2>Jugadores en campo</h2>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="dot">1</div>
+      <div class="content">
+        <strong>Marcar quién está en el campo</strong>
+        <p>Debajo de cada nombre de jugador hay un pequeño botón <strong>"En Campo"</strong>. Tócalo cuando el jugador entre al campo — se pondrá verde. Tócalo de nuevo cuando salga — se pondrá gris.</p>
+        <span class="pill green">🟢 En Campo</span>
+        <span class="pill">⚪ Banca</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">2</div>
+      <div class="content">
+        <strong>Hacer una sustitución</strong>
+        <p>Cuando el árbitro autorice el cambio:</p>
+        <p>① Toca <strong>"En Campo"</strong> del jugador que <em>sale</em> (se pone gris)<br>
+           ② Toca <strong>"En Campo"</strong> del jugador que <em>entra</em> (se pone verde)</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">3</div>
+      <div class="content">
+        <strong>El tiempo en campo se cuenta solo</strong>
+        <p>Mientras el reloj está corriendo y el jugador está marcado como "En Campo", la app acumula sus minutos jugados. Esto se refleja en la columna MIN de la tabla.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">4</div>
+      <div class="content">
+        <strong>Jugador expulsado</strong>
+        <p>Después de registrar la tarjeta roja, toca su botón "En Campo" para sacarlo del campo. No puede volver, así que no lo vuelvas a tocar.</p>
+      </div>
+    </div>
+  </div>
+  <div class="tip">
+    <strong>💡 Los minutos son aproximados</strong>
+    La app mide el tiempo de forma continua. Si el reloj está pausado, los minutos no corren. Es una referencia útil, no el tiempo oficial.
+  </div>
+</div>
+
+<!-- SECCIÓN 7 -->
+<div class="section" id="s7">
+  <div class="section-header">
+    <div class="num">7</div>
+    <span class="icon">🔁</span>
+    <h2>Medio tiempo y fin del partido</h2>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="dot">1</div>
+      <div class="content">
+        <strong>Al llegar al medio tiempo</strong>
+        <p>Toca <strong>"⏸ Pausar Reloj"</strong> cuando suene el silbato. Puedes revisar los stats del primer tiempo con tu equipo.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">2</div>
+      <div class="content">
+        <strong>Inicio del segundo tiempo</strong>
+        <p>Toca <strong>"▶ Iniciar Reloj"</strong> cuando comiencen de nuevo. El reloj continúa desde donde quedó — no se resetea al medio tiempo (es el tiempo total del partido).</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">3</div>
+      <div class="content">
+        <strong>Sustituciones en el descanso</strong>
+        <p>Si vas a hacer cambios durante el medio tiempo, hazlos ahora: toca "En Campo" de los que salen y "En Campo" de los que entran, antes de reanudar el reloj.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">4</div>
+      <div class="content">
+        <strong>Final del partido</strong>
+        <p>Cuando el árbitro pite el final, pausa el reloj. Luego ve a la sección 8 para guardar el partido en el historial.</p>
+      </div>
+    </div>
+  </div>
+  <div class="info">
+    <strong>ℹ️ El reloj es continuo</strong>
+    El tracker no diferencia «primer tiempo» y «segundo tiempo» en el reloj. El tiempo corre de corrido. El marcador y los stats se acumulan durante todo el partido.
+  </div>
+</div>
+
+<!-- SECCIÓN 8 -->
+<div class="section" id="s8">
+  <div class="section-header">
+    <div class="num">8</div>
+    <span class="icon">💾</span>
+    <h2>Guardar en el historial de temporada</h2>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="dot">1</div>
+      <div class="content">
+        <strong>Al terminar el partido, toca "Historial"</strong>
+        <p>Se abre el historial de partidos de la temporada.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">2</div>
+      <div class="content">
+        <strong>Toca "Guardar Partido Actual"</strong>
+        <p>La app guarda una foto completa de todos los stats del partido: goles, asistencias, tarjetas, minutos jugados, todo.</p>
+        <span class="pill green">✔ Guardar Partido Actual</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">3</div>
+      <div class="content">
+        <strong>Escribe el nombre del rival (opcional)</strong>
+        <p>Se te pedirá un nombre para el partido (por ejemplo «vs Colegio San Marcos»). Esto te ayuda a identificarlo después.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">4</div>
+      <div class="content">
+        <strong>El partido queda guardado en la nube</strong>
+        <p>Una vez guardado, podrás verlo desde cualquier dispositivo. La app limpia el marcador para el próximo partido.</p>
+      </div>
+    </div>
+  </div>
+  <div class="warning">
+    <strong>⚠️ Guarda antes de cerrar la app</strong>
+    Si cierras la app sin guardar el partido en el historial, los stats del partido se conservan temporalmente en el dispositivo, pero es mejor guardar inmediatamente al terminar para no arriesgarte a perder datos.
+  </div>
+</div>
+
+<!-- SECCIÓN 9 -->
+<div class="section" id="s9">
+  <div class="section-header">
+    <div class="num">9</div>
+    <span class="icon">📈</span>
+    <h2>Ver el resumen y exportar</h2>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="dot">1</div>
+      <div class="content">
+        <strong>Ver los stats del partido actual</strong>
+        <p>La tabla principal de la app muestra todos los stats en tiempo real durante el partido. Puedes girar el teléfono a horizontal para ver más columnas.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">2</div>
+      <div class="content">
+        <strong>Ver el historial completo de la temporada</strong>
+        <p>Toca <strong>"Historial"</strong> en cualquier momento para ver todos los partidos guardados y las estadísticas acumuladas de cada jugador en la temporada.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="dot">3</div>
+      <div class="content">
+        <strong>Exportar a Excel</strong>
+        <p>Toca <strong>"📊 Exportar Excel"</strong> para descargar una hoja de cálculo con todos los stats. Puedes abrirla en Excel, Google Sheets o enviársela al director técnico.</p>
+        <span class="pill blue">📊 Exportar Excel</span>
+      </div>
+    </div>
+  </div>
+  <div class="tip">
+    <strong>💡 Comparte el Excel por WhatsApp</strong>
+    Después de exportar, el archivo queda descargado en tu teléfono. Ve a la carpeta de Descargas, tócalo y compártelo por WhatsApp, correo o como prefieras.
+  </div>
+</div>
+
+<!-- SECCIÓN 10 -->
+<div class="section" id="s10">
+  <div class="section-header">
+    <div class="num">10</div>
+    <span class="icon">❓</span>
+    <h2>Preguntas frecuentes</h2>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="dot">?</div>
+      <div class="content">
+        <strong>Anoté algo mal, ¿cómo lo corrijo?</strong>
+        <p>En el tracker de fútbol no hay botón «Deshacer» como en básquet. Si te equivocas, simplemente vuelve a seleccionar al jugador y anota el evento en el jugador correcto. Si es un evento que no debería estar (por ejemplo un gol anotado al jugador equivocado), puedes contactar al director técnico para ajustarlo manualmente en el historial.</p>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="step">
+      <div class="dot">?</div>
+      <div class="content">
+        <strong>Se me fue la pantalla apagada, ¿perdí datos?</strong>
+        <p>No. La app guarda automáticamente en tu dispositivo cada vez que registras un evento. Al abrir la app de nuevo, todo estará exactamente igual.</p>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="step">
+      <div class="dot">?</div>
+      <div class="content">
+        <strong>Perdí la señal de internet durante el partido</strong>
+        <p>Sin problema. La app funciona completamente sin internet una vez que la cargaste. Los datos se sincronizan automáticamente cuando recuperas la señal.</p>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="step">
+      <div class="dot">?</div>
+      <div class="content">
+        <strong>¿Puedo usar la app en dos teléfonos al mismo tiempo?</strong>
+        <p>Sí, pero si dos personas anotan al mismo tiempo puede haber conflictos. Lo recomendado es que <strong>una sola persona</strong> lleve los stats en vivo. La otra puede ver el historial sin problemas.</p>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="step">
+      <div class="dot">?</div>
+      <div class="content">
+        <strong>El jugador no aparece en la lista</strong>
+        <p>Necesitas agregar al jugador a la plantilla. Abre «Plantillas», edita la plantilla actual y agrega el nombre. Si es un partido de emergencia, puedes añadirlo temporalmente desde la app.</p>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="step">
+      <div class="dot">?</div>
+      <div class="content">
+        <strong>¿Los stats del torneo y del partido son lo mismo?</strong>
+        <p>No. El tracker muestra los stats del <em>partido actual</em>. El historial suma todos los partidos de la <em>temporada</em>. Cuando exportas a Excel puedes ver ambos.</p>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="step">
+      <div class="dot">?</div>
+      <div class="content">
+        <strong>¿Qué hago si algo no funciona?</strong>
+        <p>Primero intenta recargar la página (desliza hacia abajo en la app o toca el botón de recargar del navegador). Si el problema persiste, avisa al director técnico con una captura de pantalla.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PIE DE PÁGINA -->
+<div class="footer">
+  <div class="logo">⚽</div>
+  <p><strong>Titans — Tracker de Estadísticas</strong></p>
+  <p style="margin-top: 6px;">Cualquier duda, contacta al director técnico del programa.</p>
+  <p style="margin-top: 4px; font-size: 12px; color: #bbb;">titans-tracker • Temporada 2026</p>
+</div>
+
+</body>
+</html>
