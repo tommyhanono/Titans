@@ -935,6 +935,19 @@ async function saveToHistory(rivalName, rivalScore) {
   await fbPush(game);
   toast('📚 Partido guardado en historial');
 }
+async function saveCurrentToHistory() {
+  if (totalPts() === 0 && !S.players.some(p => (S.minutesPlayed[p]||0) > 0)) {
+    toast('No hay estadísticas para guardar en el historial');
+    return false;
+  }
+  const rivalScoreRaw = prompt('¿Cuántos puntos hizo el rival? (Enter para saltar)', '');
+  if (rivalScoreRaw === null) return false;  // cancelled
+  const rivalScore = rivalScoreRaw.trim() !== '' ? parseInt(rivalScoreRaw, 10) : null;
+  const rivalName = S.gameName.replace(/.*vs\s*/i, '').trim() || '???';
+  await saveToHistory(rivalName, rivalScore);
+  return true;
+}
+
 
 async function openHistorial() {
   fbMigrateSeedIfNeeded();
@@ -1113,7 +1126,11 @@ async function openHistorial() {
   .del-game-btn{margin-left:auto;background:none;border:none;font-size:1rem;cursor:pointer;
                 opacity:0.4;padding:2px 4px;border-radius:4px;flex-shrink:0}
   .del-game-btn:hover{opacity:1;background:#ffeaea}
-  @media print{.print-btn,.del-game-btn{display:none}}
+  .save-bar{background:#1a5e35;border-radius:8px;padding:14px 16px;margin-bottom:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .save-bar-label{color:rgba(255,255,255,0.9);font-size:0.85rem;flex:1;min-width:160px;margin:0}
+  .save-current-btn{background:#2ecc71;color:#fff;border:none;border-radius:6px;padding:10px 18px;font-size:0.9rem;font-weight:700;cursor:pointer;flex-shrink:0;white-space:nowrap}
+  .save-current-btn:hover{background:#27ae60}
+  @media print{.print-btn,.del-game-btn,.save-bar{display:none}}
 </style>
 <script>
 async function deleteGame(fbKey, idx) {
@@ -1127,6 +1144,14 @@ async function deleteGame(fbKey, idx) {
     window.opener.openHistorial();
   }
   window.close();
+
+async function doSaveCurrent() {
+  if (!window.opener || window.opener.closed) {
+    alert('Cerrá el historial y volvé a abrirlo desde la app.');
+    return;
+  }
+  const saved = await window.opener.saveCurrentToHistory();
+  if (saved) { window.opener.openHistorial(); window.close(); }
 }
 </script>
 </head><body><div class="page">
