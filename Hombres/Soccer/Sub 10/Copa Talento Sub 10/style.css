@@ -1062,6 +1062,21 @@ thead .scol { z-index: 2; }
 }
 .season-tbl td:first-child { text-align: left; }
 .season-tbl tbody tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+.del-season-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  opacity: 0.4;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--accent2, #e74c3c);
+  line-height: 1;
+  display: block;
+  margin: 0 auto;
+}
+.del-season-btn:hover { opacity: 1; background: rgba(231,76,60,0.12); }
+
 
 
 /* ═══ PLANTILLAS MODAL ════════════════════════════════════════════════════════ */

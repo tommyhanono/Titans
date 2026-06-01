@@ -658,6 +658,23 @@ async function clearSeason() {
   renderSeasonContent([]);
   toast('Temporada limpiada 🗑️');
 }
+async function deleteGameFromSeason(fbKey, gameId) {
+  if (!confirm('¿Eliminar este partido del historial? Esta acción no se puede deshacer.')) return;
+  if (fbKey) {
+    try {
+      await fetch(`${FB_BASE}/${FB_NODE}/history/${fbKey}.json`, { method: 'DELETE' });
+    } catch(e) { console.warn('Firebase delete failed:', e); }
+  }
+  try {
+    const season = loadSeason();
+    season.games = (season.games || []).filter(g => String(g.id) !== String(gameId));
+    localStorage.setItem(SEASON_KEY, JSON.stringify(season));
+  } catch(_) {}
+  const games = await fbGet();
+  renderSeasonContent(games);
+  toast('Partido eliminado del historial 🗑️');
+}
+
 
 // ── Firebase (history sync) ───────────────────────────────
 const FB_BASE = 'https://titans-tracker-default-rtdb.firebaseio.com';
@@ -751,6 +768,7 @@ function renderSeasonContent(games) {
       <td>vs ${esc(g.rival)}</td>
       <td>${g.teamScore}–${g.rivalScore}</td>
       <td>${icon} ${g.result === 'V' ? 'Victoria' : g.result === 'D' ? 'Derrota' : 'Empate'}</td>
+      <td><button class="del-season-btn" onclick="deleteGameFromSeason('${g._fbKey||\'\'}','${g.id||\'\'}')" title="Eliminar partido">🗑️</button></td>
     </tr>`;
   }).join('');
 
@@ -778,7 +796,7 @@ function renderSeasonContent(games) {
     <div class="season-section-title">Historial de Partidos</div>
     <div class="table-scroll">
       <table class="season-tbl">
-        <thead><tr><th>Fecha</th><th>Partido</th><th>Rival</th><th>Resultado</th><th>Estado</th></tr></thead>
+        <thead><tr><th>Fecha</th><th>Partido</th><th>Rival</th><th>Resultado</th><th>Estado</th><th></th></tr></thead>
         <tbody>${gameRows}</tbody>
       </table>
     </div>
