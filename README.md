@@ -1,5 +1,7 @@
 # 🏆 Titans — Stat Trackers
 
+## 🔒 [→ ADMIN DASHBOARD](https://tommyhanono.github.io/Titans/admin/)
+
 Trackers de estadísticas en vivo para todos los equipos Titans — Básquetbol y Fútbol. PWA instalable en cualquier dispositivo, funciona offline después del primer uso.
 
 ## 🔗 Apps por categoría
