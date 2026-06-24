@@ -879,7 +879,7 @@ async function fbPush(game) {
       local.push(game);
       localStorage.setItem(HISTORY_KEY, JSON.stringify(local));
     } catch(_) {}
-    fbLog('history_save');
+    fbLog('history_save', { gameName: game.gameName||'', rivalName: game.rivalName||'', titansScore: game.titansScore??null, rivalScore: game.rivalScore??null, players: game.players||[] });
     return fbKey;
   } catch(e) {
     // Offline: save to localStorage only
@@ -1752,5 +1752,5 @@ document.addEventListener('DOMContentLoaded', async () => {
   bindEvents();
   startInterval();
   registerSW();
-  fbLog('app_open');
+  fbLog('app_open', { players: S.players||[] });
 });

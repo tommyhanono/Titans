@@ -272,16 +272,27 @@ function renderTable() {
     const badgeCls = e.event === 'app_open' ? 'badge-open'
                    : e.event === 'history_save' ? 'badge-save' : 'badge-other';
 
-    const extraKeys = Object.keys(e.extra).filter(k => e.extra[k] != null);
-    const extraStr = extraKeys.length
-      ? extraKeys.map(k => `${k}: ${e.extra[k]}`).join(', ')
-      : '—';
+    let detail = '';
+    if (e.event === 'history_save' && e.extra.gameName) {
+      const score = (e.extra.titansScore != null && e.extra.rivalScore != null)
+        ? `<span style="color:#4ade80;font-weight:600">${e.extra.titansScore}</span> - <span style="color:#f87171">${e.extra.rivalScore}</span> `
+        : '';
+      const players = Array.isArray(e.extra.players) && e.extra.players.length
+        ? `<div style="color:#64748b;font-size:11px;margin-top:4px">${e.extra.players.join(' · ')}</div>`
+        : '';
+      detail = `<div>${score}<span style="color:#e2e8f0">${e.extra.gameName}</span></div>${players}`;
+    } else if (e.event === 'app_open' && Array.isArray(e.extra.players) && e.extra.players.length) {
+      detail = `<div style="color:#64748b;font-size:11px">${e.extra.players.join(' · ')}</div>`;
+    } else {
+      const extraKeys = Object.keys(e.extra).filter(k => e.extra[k] != null && k !== 'players');
+      detail = extraKeys.length ? extraKeys.map(k => `${k}: ${e.extra[k]}`).join(', ') : '—';
+    }
 
     tr.innerHTML = `
       <td>${dt}</td>
       <td><span class="badge ${badgeCls}">${e.event}</span></td>
       <td><span class="tracker-chip">${TRACKER_LABELS[e.tracker] || e.tracker || '—'}</span></td>
-      <td style="color:#475569;font-size:12px">${extraStr}</td>
+      <td style="font-size:12px">${detail}</td>
     `;
     body.appendChild(tr);
   });

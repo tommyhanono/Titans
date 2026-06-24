@@ -1,5 +1,5 @@
 /* Service Worker — Titans Tracker */
-const CACHE = 'basket-ludos18-v12';
+const CACHE = 'basket-ludos18-v13';
 const CORE  = [
   './', './index.html', './style.css', './app.js',
   './manifest.json', './icon-192.svg', './icon-512.svg',
