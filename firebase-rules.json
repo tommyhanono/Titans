@@ -1,51 +1,6 @@
 {
   "rules": {
-    ".read": false,
-    ".write": false,
-
-    "approved_users": {
-      ".read": "auth != null",
-      ".write": "auth != null && auth.token.email === 'tommyhanono@gmail.com'"
-    },
-
-    "pending_users": {
-      "$uid": {
-        ".read": "auth != null && auth.uid === $uid",
-        ".write": "auth != null && auth.uid === $uid"
-      }
-    },
-
-    "titans_copa18": {
-      ".read":  "auth != null && root.child('approved_users').child(auth.uid).child('approved').val() === true",
-      ".write": "auth != null && root.child('approved_users').child(auth.uid).child('approved').val() === true"
-    },
-    "titans_ludos18": {
-      ".read":  "auth != null && root.child('approved_users').child(auth.uid).child('approved').val() === true",
-      ".write": "auth != null && root.child('approved_users').child(auth.uid).child('approved').val() === true"
-    },
-    "titans_copa16": {
-      ".read":  "auth != null && root.child('approved_users').child(auth.uid).child('approved').val() === true",
-      ".write": "auth != null && root.child('approved_users').child(auth.uid).child('approved').val() === true"
-    },
-    "titans_ludos14": {
-      ".read":  "auth != null && root.child('approved_users').child(auth.uid).child('approved').val() === true",
-      ".write": "auth != null && root.child('approved_users').child(auth.uid).child('approved').val() === true"
-    },
-    "titans_copa12": {
-      ".read":  "auth != null && root.child('approved_users').child(auth.uid).child('approved').val() === true",
-      ".write": "auth != null && root.child('approved_users').child(auth.uid).child('approved').val() === true"
-    },
-    "mba_sub13": {
-      ".read":  "auth != null && root.child('approved_users').child(auth.uid).child('approved').val() === true",
-      ".write": "auth != null && root.child('approved_users').child(auth.uid).child('approved').val() === true"
-    },
-    "mba_sub15": {
-      ".read":  "auth != null && root.child('approved_users').child(auth.uid).child('approved').val() === true",
-      ".write": "auth != null && root.child('approved_users').child(auth.uid).child('approved').val() === true"
-    },
-    "mba_sub17": {
-      ".read":  "auth != null && root.child('approved_users').child(auth.uid).child('approved').val() === true",
-      ".write": "auth != null && root.child('approved_users').child(auth.uid).child('approved').val() === true"
-    }
+    ".read": true,
+    ".write": true
   }
 }
