@@ -1,5 +1,5 @@
 /* Service Worker — Titans Tracker */
-const CACHE = 'basket-copa12-v10';
+const CACHE = 'basket-copa12-v12';
 const CORE  = [
   './', './index.html', './style.css', './app.js',
   './manifest.json', './icon-192.svg', './icon-512.svg',

@@ -1,5 +1,5 @@
 /* Service Worker — Titans Tracker */
-const CACHE = 'titans-sub18-copa-v11';
+const CACHE = 'titans-sub18-copa-v14';
 const CORE  = [
   './', './index.html', './style.css', './app.js',
   './manifest.json', './icon-192.svg', './icon-512.svg',

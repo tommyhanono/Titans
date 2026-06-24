@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin — Basket Stats</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0f172a; color: #e2e8f0; font-family: system-ui, sans-serif; padding: 24px; }
+    h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .subtitle { color: #64748b; font-size: 13px; margin-bottom: 24px; }
+    #login-section { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; gap: 16px; }
+    #login-section h2 { font-size: 18px; }
+    #btn-login { display: flex; align-items: center; gap: 10px; background: #fff; color: #3c4043; border: none; padding: 12px 24px; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    #main-section { display: none; }
+    .admin-info { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding: 12px 16px; background: #1e293b; border-radius: 8px; }
+    .admin-email { font-size: 13px; color: #94a3b8; }
+    #btn-logout { background: transparent; color: #64748b; border: 1px solid #334155; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    .section-title { font-size: 15px; font-weight: 600; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #1e293b; }
+    .pending-section { margin-bottom: 32px; }
+    .user-card { background: #1e293b; border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .user-info { flex: 1; min-width: 0; }
+    .user-email { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-meta { font-size: 12px; color: #64748b; margin-top: 3px; }
+    .user-actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .btn-approve { background: #16a34a; color: #fff; border: none; padding: 7px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .btn-reject { background: transparent; color: #94a3b8; border: 1px solid #334155; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    .btn-revoke { background: transparent; color: #ef4444; border: 1px solid #7f1d1d; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; }
+    .empty-msg { color: #475569; font-size: 13px; padding: 12px 0; }
+    .badge { display: inline-block; background: #f59e0b; color: #000; border-radius: 99px; padding: 1px 8px; font-size: 11px; font-weight: 700; margin-left: 6px; }
+    .approved-badge { background: #16a34a; color: #fff; }
+    #status-msg { position: fixed; bottom: 20px; right: 20px; background: #1e293b; color: #e2e8f0; padding: 10px 18px; border-radius: 8px; font-size: 13px; transform: translateY(80px); transition: transform .3s; }
+    #status-msg.show { transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+<div id="login-section">
+  <div style="font-size:48px">🏀</div>
+  <h2>Basket Stats — Panel de Admin</h2>
+  <p style="color:#64748b;font-size:13px">Solo accesible para el administrador</p>
+  <button id="btn-login">
+    <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+    Iniciar sesión con Google
+  </button>
+</div>
+
+<div id="main-section">
+  <h1>🏀 Panel de Administración</h1>
+  <p class="subtitle">Aprobá o rechazá acceso a los trackers de basket</p>
+
+  <div class="admin-info">
+    <span class="admin-email" id="admin-email-display"></span>
+    <button id="btn-logout">Cerrar sesión</button>
+  </div>
+
+  <div class="pending-section">
+    <div class="section-title">Pendientes de aprobación <span class="badge" id="pending-count">0</span></div>
+    <div id="pending-list"><p class="empty-msg">No hay solicitudes pendientes.</p></div>
+  </div>
+
+  <div>
+    <div class="section-title">Usuarios aprobados <span class="badge approved-badge" id="approved-count">0</span></div>
+    <div id="approved-list"><p class="empty-msg">No hay usuarios aprobados aún.</p></div>
+  </div>
+</div>
+
+<div id="status-msg"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script>
+const FB_CFG = { apiKey:'REPLACE_WITH_FIREBASE_API_KEY', authDomain:'titans-tracker.firebaseapp.com', projectId:'titans-tracker' };
+const FB_BASE = 'https://titans-tracker-default-rtdb.firebaseio.com';
+const ADMIN_EMAIL = 'tommyhanono@gmail.com';
+let token = null;
+
+firebase.initializeApp(FB_CFG);
+
+function toast(msg) {
+  const el = document.getElementById('status-msg');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+async function fbGet(path) {
+  const r = await fetch(`${FB_BASE}/${path}.json?auth=${token}`);
+  return r.json();
+}
+async function fbSet(path, data) {
+  await fetch(`${FB_BASE}/${path}.json?auth=${token}`, {
+    method: 'PUT', body: JSON.stringify(data)
+  });
+}
+async function fbDelete(path) {
+  await fetch(`${FB_BASE}/${path}.json?auth=${token}`, { method: 'DELETE' });
+}
+
+function formatDate(ts) {
+  if (!ts) return '';
+  return new Date(ts).toLocaleString('es-PA', { dateStyle:'short', timeStyle:'short' });
+}
+
+async function loadData() {
+  const [pending, approved] = await Promise.all([
+    fbGet('pending_users'),
+    fbGet('approved_users')
+  ]);
+
+  const pendingList = document.getElementById('pending-list');
+  const approvedList = document.getElementById('approved-list');
+  const pendingEntries = pending ? Object.entries(pending) : [];
+  const approvedEntries = approved ? Object.entries(approved) : [];
+
+  document.getElementById('pending-count').textContent = pendingEntries.length;
+  document.getElementById('approved-count').textContent = approvedEntries.length;
+
+  if (pendingEntries.length === 0) {
+    pendingList.innerHTML = '<p class="empty-msg">No hay solicitudes pendientes.</p>';
+  } else {
+    pendingList.innerHTML = pendingEntries.map(([uid, u]) => `
+      <div class="user-card">
+        <div class="user-info">
+          <div class="user-email">${u.email || uid}</div>
+          <div class="user-meta">${u.name || ''} · Tracker: ${u.tracker || '?'} · ${formatDate(u.requestedAt)}</div>
+        </div>
+        <div class="user-actions">
+          <button class="btn-approve" onclick="approve('${uid}','${(u.email||'').replace(/'/g,"\\'")}','${(u.name||'').replace(/'/g,"\\'")}')">✓ Aprobar</button>
+          <button class="btn-reject" onclick="reject('${uid}')">Rechazar</button>
+        </div>
+      </div>`).join('');
+  }
+
+  if (approvedEntries.length === 0) {
+    approvedList.innerHTML = '<p class="empty-msg">No hay usuarios aprobados aún.</p>';
+  } else {
+    approvedList.innerHTML = approvedEntries.map(([uid, u]) => `
+      <div class="user-card">
+        <div class="user-info">
+          <div class="user-email">${u.email || uid}</div>
+          <div class="user-meta">${u.name || ''} · Aprobado: ${formatDate(u.approvedAt)}</div>
+        </div>
+        <div class="user-actions">
+          <button class="btn-revoke" onclick="revoke('${uid}')">Revocar</button>
+        </div>
+      </div>`).join('');
+  }
+}
+
+async function approve(uid, email, name) {
+  await fbSet(`approved_users/${uid}`, { approved: true, email, name, approvedAt: Date.now() });
+  await fbDelete(`pending_users/${uid}`);
+  toast(`✓ ${email} aprobado`);
+  loadData();
+}
+
+async function reject(uid) {
+  await fbDelete(`pending_users/${uid}`);
+  toast('Solicitud rechazada');
+  loadData();
+}
+
+async function revoke(uid) {
+  if (!confirm('¿Revocar acceso a este usuario?')) return;
+  await fbDelete(`approved_users/${uid}`);
+  toast('Acceso revocado');
+  loadData();
+}
+
+document.getElementById('btn-login').addEventListener('click', () =>
+  firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()));
+
+document.getElementById('btn-logout').addEventListener('click', () =>
+  firebase.auth().signOut());
+
+firebase.auth().onAuthStateChanged(async user => {
+  if (!user) {
+    document.getElementById('login-section').style.display = '';
+    document.getElementById('main-section').style.display = 'none';
+    return;
+  }
+  if (user.email !== ADMIN_EMAIL) {
+    alert('Acceso denegado — solo el administrador puede usar este panel.');
+    firebase.auth().signOut();
+    return;
+  }
+  token = await user.getIdToken(true);
+  document.getElementById('login-section').style.display = 'none';
+  document.getElementById('main-section').style.display = '';
+  document.getElementById('admin-email-display').textContent = user.email;
+  loadData();
+  firebase.auth().onIdTokenChanged(async u => { if (u) token = await u.getIdToken(); });
+});
+</script>
+</body>
+</html>

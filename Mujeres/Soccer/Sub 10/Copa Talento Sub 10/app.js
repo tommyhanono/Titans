@@ -768,7 +768,7 @@ function renderSeasonContent(games) {
       <td>vs ${esc(g.rival)}</td>
       <td>${g.teamScore}–${g.rivalScore}</td>
       <td>${icon} ${g.result === 'V' ? 'Victoria' : g.result === 'D' ? 'Derrota' : 'Empate'}</td>
-      <td><button class="del-season-btn" onclick="deleteGameFromSeason('${g._fbKey||\'\'}','${g.id||\'\'}')" title="Eliminar partido">🗑️</button></td>
+      <td><button class="del-season-btn" onclick="deleteGameFromSeason('${g._fbKey||''}','${g.id||''}')" title="Eliminar partido">🗑️</button></td>
     </tr>`;
   }).join('');
 
